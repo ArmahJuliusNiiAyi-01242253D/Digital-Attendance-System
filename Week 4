@@ -1,0 +1,228 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <fstream>
+#include <sstream>
+
+using namespace std;
+
+/* =========================
+   STUDENT CLASS
+========================= */
+class Student {
+public:
+    string indexNumber;
+    string name;
+
+    Student(string idx = "", string n = "") {
+        indexNumber = idx;
+        name = n;
+    }
+
+    void display() const {
+        cout << "Index: " << indexNumber
+             << " | Name: " << name << endl;
+    }
+};
+
+/* =========================
+   ATTENDANCE SESSION CLASS
+========================= */
+class AttendanceSession {
+public:
+    string courseCode;
+    string date;
+    string startTime;
+    int duration;
+
+    vector<string> studentIndex;
+    vector<string> status;
+
+    AttendanceSession(string c = "", string d = "", string t = "", int dur = 0) {
+        courseCode = c;
+        date = d;
+        startTime = t;
+        duration = dur;
+    }
+};
+
+/* =========================
+   GLOBAL VARIABLES
+========================= */
+vector<Student> students;
+vector<AttendanceSession> sessions;
+
+/* =========================
+   FILE FUNCTIONS
+========================= */
+
+// Save all students to file
+void saveStudentsToFile() {
+    ofstream file("students.txt");
+
+    for (const Student& s : students) {
+        file << s.indexNumber << "," << s.name << endl;
+    }
+
+    file.close();
+}
+
+// Load students from file when program starts
+void loadStudentsFromFile() {
+    ifstream file("students.txt");
+    if (!file) return;
+
+    string line;
+
+    while (getline(file, line)) {
+        stringstream ss(line);
+        string idx, name;
+
+        getline(ss, idx, ',');
+        getline(ss, name);
+
+        students.push_back(Student(idx, name));
+    }
+
+    file.close();
+}
+
+// Save attendance session to file
+void saveSessionToFile(const AttendanceSession& session) {
+    string filename = "session_" +
+                      session.courseCode + "_" +
+                      session.date + ".txt";
+
+    ofstream file(filename);
+
+    file << "Course Code: " << session.courseCode << endl;
+    file << "Date: " << session.date << endl;
+    file << "Start Time: " << session.startTime << endl;
+    file << "Duration: " << session.duration << endl;
+
+    for (int i = 0; i < session.studentIndex.size(); i++) {
+        file << session.studentIndex[i] << ","
+             << session.status[i] << endl;
+    }
+
+    file.close();
+}
+
+/* =========================
+   EXISTING FUNCTIONS (W1–W3)
+========================= */
+
+void addStudent() {
+    string idx, name;
+
+    cout << "Enter Index Number: ";
+    cin >> idx;
+    cin.ignore();
+
+    cout << "Enter Name: ";
+    getline(cin, name);
+
+    students.push_back(Student(idx, name));
+    cout << "Student registered successfully.\n";
+}
+
+void viewStudents() {
+    if (students.empty()) {
+        cout << "No students registered.\n";
+        return;
+    }
+
+    for (const Student& s : students)
+        s.display();
+}
+
+void createSession() {
+    string code, date, time;
+    int duration;
+
+    cout << "Enter Course Code: ";
+    cin >> code;
+
+    cout << "Enter Date (YYYY-MM-DD): ";
+    cin >> date;
+
+    cout << "Enter Start Time: ";
+    cin >> time;
+
+    cout << "Enter Duration (minutes): ";
+    cin >> duration;
+
+    sessions.push_back(AttendanceSession(code, date, time, duration));
+    cout << "Session created successfully.\n";
+}
+
+void markAttendance() {
+    if (sessions.empty() || students.empty()) {
+        cout << "Session or students not available.\n";
+        return;
+    }
+
+    AttendanceSession& session = sessions.back();
+
+    for (const Student& s : students) {
+        int choice;
+
+        cout << "\nStudent: " << s.name
+             << " (" << s.indexNumber << ")\n";
+        cout << "1. Present\n2. Absent\n3. Late\nChoice: ";
+        cin >> choice;
+
+        session.studentIndex.push_back(s.indexNumber);
+
+        if (choice == 1)
+            session.status.push_back("Present");
+        else if (choice == 2)
+            session.status.push_back("Absent");
+        else
+            session.status.push_back("Late");
+    }
+
+    saveSessionToFile(session);
+    cout << "Attendance saved to file.\n";
+}
+
+/* =========================
+   MAIN FUNCTION
+========================= */
+
+int main() {
+
+    // Load students automatically when program starts
+    loadStudentsFromFile();
+
+    int choice;
+
+    do {
+        cout << "\n===== DIGITAL ATTENDANCE SYSTEM =====\n";
+        cout << "1. Register Student\n";
+        cout << "2. View Students\n";
+        cout << "3. Create Session\n";
+        cout << "4. Mark Attendance\n";
+        cout << "5. Save Students\n";
+        cout << "6. Exit\n";
+        cout << "Enter choice: ";
+        cin >> choice;
+
+        switch (choice) {
+            case 1: addStudent(); break;
+            case 2: viewStudents(); break;
+            case 3: createSession(); break;
+            case 4: markAttendance(); break;
+            case 5: saveStudentsToFile(); break;
+            case 6:
+                saveStudentsToFile();
+                cout << "Exiting system...\n";
+                break;
+            default:
+                cout << "Invalid choice.\n";
+        }
+
+    } while (choice != 6);
+
+    return 0;
+}
