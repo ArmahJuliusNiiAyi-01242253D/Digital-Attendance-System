@@ -1,0 +1,118 @@
+#include <iostream>
+#include <vector>
+#include <string>
+
+using namespace std;
+
+class Student {
+public:
+    string indexNumber;
+    string name;
+
+    Student(string idx, string n) {
+        indexNumber = idx;
+        name = n;
+    }
+};
+
+class AttendanceSession {
+public:
+    string courseCode;
+    string date;
+    string startTime;
+    int duration;
+
+    vector<string> studentIndex;
+    vector<string> status;
+
+    AttendanceSession(string c, string d, string t, int dur) {
+        courseCode = c;
+        date = d;
+        startTime = t;
+        duration = dur;
+    }
+};
+
+vector<Student> students;
+vector<AttendanceSession> sessions;
+
+void createSession();
+void markAttendance();
+void viewReport();
+
+void createSession() {
+    string code, date, time;
+    int duration;
+
+    cout << "Course Code: ";
+    cin >> code;
+    cout << "Date: ";
+    cin >> date;
+    cout << "Time: ";
+    cin >> time;
+    cout << "Duration: ";
+    cin >> duration;
+
+    sessions.push_back(AttendanceSession(code, date, time, duration));
+}
+
+void markAttendance() {
+    if (sessions.empty()) {
+        cout << "No session available.\n";
+        return;
+    }
+
+    AttendanceSession& session = sessions.back();
+
+    for (Student s : students) {
+        int choice;
+        cout << s.name << " (1-Present 2-Absent 3-Late): ";
+        cin >> choice;
+
+        session.studentIndex.push_back(s.indexNumber);
+
+        if (choice == 1) session.status.push_back("Present");
+        else if (choice == 2) session.status.push_back("Absent");
+        else session.status.push_back("Late");
+    }
+}
+
+void viewReport() {
+    if (sessions.empty()) return;
+
+    AttendanceSession& session = sessions.back();
+
+    int p = 0, a = 0, l = 0;
+
+    for (int i = 0; i < session.status.size(); i++) {
+        cout << session.studentIndex[i]
+             << " - " << session.status[i] << endl;
+
+        if (session.status[i] == "Present") p++;
+        else if (session.status[i] == "Absent") a++;
+        else l++;
+    }
+
+    cout << "\nSummary\n";
+    cout << "Present: " << p << endl;
+    cout << "Absent: " << a << endl;
+    cout << "Late: " << l << endl;
+}
+
+int main() {
+    int choice;
+
+    do {
+        cout << "\n1.Create Session\n2.Mark Attendance\n3.View Report\n4.Exit\n";
+        cin >> choice;
+
+        switch (choice) {
+            case 1: createSession(); break;
+            case 2: markAttendance(); break;
+            case 3: viewReport(); break;
+        }
+
+    } while (choice != 4);
+
+    return 0;
+}
